@@ -246,10 +246,38 @@
             return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length * 10) / 10;
         }
 
-        // Auto-load QB on page load - FIXED VERSION
+        // Auto-load QB on page load -
+        FIXED VERSION
         document.addEventListener('DOMContentLoaded', function() {
             loadPosition('qb'); // No event.target issue now
         });
     </script>
+
+    <script>
+// Debug: Force load QB data after 3 seconds
+setTimeout(function() {
+    console.log('Debug: Attempting to force load QB data...');
+    
+    // Try to access the direct URL
+    fetch('qb-data.js')
+        .then(response => {
+            console.log('qb-data.js response status:', response.status);
+            return response.text();
+        })
+        .then(jsCode => {
+            console.log('qb-data.js content loaded, length:', jsCode.length);
+            eval(jsCode);
+            if (typeof populateQBData === 'function') {
+                console.log('populateQBData function found, calling...');
+                populateQBData();
+            } else {
+                console.log('populateQBData function not found');
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load qb-data.js:', error);
+        });
+}, 3000);
+</script>
 </body>
 </html>
