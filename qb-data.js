@@ -332,4 +332,168 @@ const qbData = [
         healthScore: 7,
         points2024: 289,
         points2024Score: 6,
-        pp
+        ppg2024: 17.0,
+        ppg2024Score: 6,
+        projPoints2025: 278,
+        projPointsScore: 5,
+        projPPG2025: 16.4,
+        projPPGScore: 5,
+        olRank: 7,
+        offProjRank: 7,
+        wrCorpsRank: 6
+    },
+    {
+        name: "Drake Maye",
+        team: "NE",
+        age: 22,
+        ageScore: 5,
+        injury: "Healthy",
+        healthScore: 8,
+        points2024: 187,
+        points2024Score: 3,
+        ppg2024: 11.0,
+        ppg2024Score: 3,
+        projPoints2025: 276,
+        projPointsScore: 5,
+        projPPG2025: 16.2,
+        projPPGScore: 5,
+        olRank: 2,
+        offProjRank: 4,
+        wrCorpsRank: 3
+    },
+    {
+        name: "Trevor Lawrence",
+        team: "JAC",
+        age: 26,
+        ageScore: 10,
+        injury: "Healthy",
+        healthScore: 7,
+        points2024: 234,
+        points2024Score: 4,
+        ppg2024: 13.8,
+        ppg2024Score: 4,
+        projPoints2025: 275,
+        projPointsScore: 5,
+        projPPG2025: 16.2,
+        projPPGScore: 5,
+        olRank: 2,
+        offProjRank: 5,
+        wrCorpsRank: 6
+    },
+    {
+        name: "Bryce Young",
+        team: "CAR",
+        age: 23,
+        ageScore: 6,
+        injury: "Healthy",
+        healthScore: 8,
+        points2024: 156,
+        points2024Score: 3,
+        ppg2024: 9.2,
+        ppg2024Score: 2,
+        projPoints2025: 264,
+        projPointsScore: 5,
+        projPPG2025: 15.5,
+        projPPGScore: 5,
+        olRank: 4,
+        offProjRank: 4,
+        wrCorpsRank: 5
+    },
+    {
+        name: "Michael Penix Jr.",
+        team: "ATL",
+        age: 24,
+        ageScore: 7,
+        injury: "Healthy",
+        healthScore: 8,
+        points2024: 0,
+        points2024Score: 1,
+        ppg2024: 0,
+        ppg2024Score: 1,
+        projPoints2025: 263,
+        projPointsScore: 5,
+        projPPG2025: 15.5,
+        projPPGScore: 5,
+        olRank: 6,
+        offProjRank: 6,
+        wrCorpsRank: 7
+    },
+    {
+        name: "Tua Tagovailoa",
+        team: "MIA",
+        age: 27,
+        ageScore: 10,
+        injury: "Concussion History",
+        healthScore: 5,
+        points2024: 198,
+        points2024Score: 3,
+        ppg2024: 11.6,
+        ppg2024Score: 3,
+        projPoints2025: 263,
+        projPointsScore: 5,
+        projPPG2025: 15.5,
+        projPPGScore: 5,
+        olRank: 3,
+        offProjRank: 5,
+        wrCorpsRank: 6
+    },
+    {
+        name: "Matthew Stafford",
+        team: "LAR",
+        age: 36,
+        ageScore: 4,
+        injury: "Back Issues",
+        healthScore: 6,
+        points2024: 267,
+        points2024Score: 5,
+        ppg2024: 15.7,
+        ppg2024Score: 5,
+        projPoints2025: 262,
+        projPointsScore: 5,
+        projPPG2025: 15.4,
+        projPPGScore: 5,
+        olRank: 5,
+        offProjRank: 7,
+        wrCorpsRank: 8
+    }
+];
+
+// Function to populate QB data table
+function populateQBData() {
+    const tbody = document.getElementById('qb-data');
+    if (!tbody) {
+        console.error('QB data table body not found');
+        return;
+    }
+    
+    // Calculate final scores for each QB
+    const scoreFields = ['ageScore', 'healthScore', 'points2024Score', 'ppg2024Score', 'projPointsScore', 'projPPGScore', 'olRank', 'offProjRank', 'wrCorpsRank'];
+    
+    const sortedQBs = qbData.map(qb => ({
+        ...qb,
+        finalScore: calculateFinalScore(qb, scoreFields)
+    })).sort((a, b) => b.finalScore - a.finalScore);
+    
+    tbody.innerHTML = sortedQBs.map(qb => `
+        <tr>
+            <td class="player-name">${qb.name}</td>
+            <td class="team">${qb.team}</td>
+            <td>${qb.age}</td>
+            <td class="${getScoreClass(qb.ageScore)}">${qb.ageScore}</td>
+            <td><span class="injury-status ${getInjuryClass(qb.injury)}">${qb.injury}</span></td>
+            <td class="${getScoreClass(qb.healthScore)}">${qb.healthScore}</td>
+            <td>${qb.points2024}</td>
+            <td class="${getScoreClass(qb.points2024Score)}">${qb.points2024Score}</td>
+            <td>${qb.ppg2024}</td>
+            <td class="${getScoreClass(qb.ppg2024Score)}">${qb.ppg2024Score}</td>
+            <td>${qb.projPoints2025}</td>
+            <td class="${getScoreClass(qb.projPointsScore)}">${qb.projPointsScore}</td>
+            <td>${qb.projPPG2025}</td>
+            <td class="${getScoreClass(qb.projPPGScore)}">${qb.projPPGScore}</td>
+            <td class="${getScoreClass(qb.olRank)}">${qb.olRank}</td>
+            <td class="${getScoreClass(qb.offProjRank)}">${qb.offProjRank}</td>
+            <td class="${getScoreClass(qb.wrCorpsRank)}">${qb.wrCorpsRank}</td>
+            <td class="final-score">${qb.finalScore}</td>
+        </tr>
+    `).join('');
+}
