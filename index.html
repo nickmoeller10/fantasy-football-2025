@@ -1,338 +1,755 @@
-/**
- * Fantasy Football Cheat Sheet 2025 - Google Apps Script
- * Creates a professional, color-coded fantasy football analysis tool
- * with dynamic legend and interactive scoring system
- */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Football Cheat Sheet 2025</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 12px 20px;
+            margin: 5px;
+            color: white;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .tab:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .tab.active {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #333;
+            min-width: 1200px;
+        }
+        
+        th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        td {
+            padding: 10px 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+            font-size: 12px;
+        }
+        
+        tr:nth-child(even) {
+            background-color: rgba(0,0,0,0.02);
+        }
+        
+        tr:hover {
+            background: linear-gradient(90deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+            transform: scale(1.01);
+            transition: all 0.3s ease;
+        }
+        
+        .player-name {
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: left !important;
+            min-width: 150px;
+        }
+        
+        .team {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        
+        .score-high {
+            background-color: #2ecc71;
+            color: white;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+        
+        .score-medium {
+            background-color: #f39c12;
+            color: white;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+        
+        .score-low {
+            background-color: #e74c3c;
+            color: white;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+        
+        .final-score {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(255,107,107,0.3);
+        }
+        
+        .injury-status {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+        
+        .healthy { background-color: #2ecc71; color: white; }
+        .questionable { background-color: #f39c12; color: white; }
+        .injured { background-color: #e74c3c; color: white; }
+        
+        .position-badge {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
 
-function createFantasyFootballCheatSheet() {
-  // Create or get the spreadsheet
-  const ss = SpreadsheetApp.create('Fantasy Football Cheat Sheet 2025');
-  
-  // Create all position tabs
-  createControlPanel(ss);
-  createQBSheet(ss);
-  createPlaceholderSheets(ss);
-  
-  // Set the Control Panel as the active sheet
-  ss.setActiveSheet(ss.getSheetByName('Control Panel'));
-  
-  SpreadsheetApp.getUi().alert('Fantasy Football Cheat Sheet created successfully!\n\nCheck the "Control Panel" tab to customize your scoring system.');
-}
+        .legend {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .legend h3 {
+            margin-top: 0;
+            color: #fff;
+        }
+        
+        .legend-item {
+            display: inline-block;
+            margin: 5px 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏈 Fantasy Football Cheat Sheet 2025</h1>
+        <p>Comprehensive player analysis with aggregated scoring system</p>
+    </div>
 
-function createControlPanel(ss) {
-  const sheet = ss.insertSheet('Control Panel');
-  
-  // Set up the control panel styling
-  sheet.getRange('A1:F50').setFontFamily('Inter').setFontSize(11);
-  
-  // Header
-  sheet.getRange('A1:F1').merge().setValue('🏈 FANTASY FOOTBALL CONTROL PANEL 2025')
-    .setFontSize(18).setFontWeight('bold').setHorizontalAlignment('center')
-    .setBackground('#4285F4').setFontColor('white');
-  
-  // Spacing
-  sheet.setRowHeight(1, 50);
-  sheet.setRowHeight(2, 20);
-  
-  // Section: Scoring System Configuration
-  sheet.getRange('A3:F3').merge().setValue('📊 SCORING SYSTEM CONFIGURATION')
-    .setFontSize(14).setFontWeight('bold').setBackground('#E8F0FE')
-    .setHorizontalAlignment('center');
-  
-  // Age Scoring Configuration
-  sheet.getRange('A5').setValue('AGE SCORING RULES').setFontWeight('bold').setBackground('#F8F9FA');
-  sheet.getRange('A6').setValue('Prime Age Range (Score = 10):');
-  sheet.getRange('B6').setValue('25-30 years');
-  sheet.getRange('A7').setValue('Good Age Range (Score = 7-9):');
-  sheet.getRange('B7').setValue('23-24, 31-32 years');
-  sheet.getRange('A8').setValue('Risk Age Range (Score = 1-6):');
-  sheet.getRange('B8').setValue('22 or younger, 33+ years');
-  
-  // Health Scoring Configuration
-  sheet.getRange('A10').setValue('HEALTH SCORING RULES').setFontWeight('bold').setBackground('#F8F9FA');
-  sheet.getRange('A11').setValue('Healthy (Score = 9-10):');
-  sheet.getRange('B11').setValue('No current injuries, good history');
-  sheet.getRange('A12').setValue('Questionable (Score = 5-8):');
-  sheet.getRange('B12').setValue('Minor injuries or concerning history');
-  sheet.getRange('A13').setValue('Injured (Score = 1-4):');
-  sheet.getRange('B13').setValue('Current significant injury');
-  
-  // Color Legend
-  sheet.getRange('A15:F15').merge().setValue('🎨 COLOR CODING LEGEND')
-    .setFontSize(14).setFontWeight('bold').setBackground('#E8F0FE')
-    .setHorizontalAlignment('center');
-  
-  sheet.getRange('A17').setValue('Score Range').setFontWeight('bold');
-  sheet.getRange('B17').setValue('Color').setFontWeight('bold');
-  sheet.getRange('C17').setValue('Meaning').setFontWeight('bold');
-  sheet.getRange('D17').setValue('Example').setFontWeight('bold');
-  
-  sheet.getRange('A18').setValue('8-10');
-  sheet.getRange('B18').setValue('Elite').setBackground('#34A853').setFontColor('white').setFontWeight('bold');
-  sheet.getRange('C18').setValue('Top tier players');
-  sheet.getRange('D18').setValue('Josh Allen, Lamar Jackson');
-  
-  sheet.getRange('A19').setValue('5-7');
-  sheet.getRange('B19').setValue('Above Average').setBackground('#FBBC04').setFontColor('white').setFontWeight('bold');
-  sheet.getRange('C19').setValue('Solid starters');
-  sheet.getRange('D19').setValue('Dak Prescott, Kyler Murray');
-  
-  sheet.getRange('A20').setValue('1-4');
-  sheet.getRange('B20').setValue('Below Average').setBackground('#EA4335').setFontColor('white').setFontWeight('bold');
-  sheet.getRange('C20').setValue('Risky or backup options');
-  sheet.getRange('D20').setValue('Rookies, injury concerns');
-  
-  // Instructions
-  sheet.getRange('A22:F22').merge().setValue('📋 HOW TO USE THIS TOOL')
-    .setFontSize(14).setFontWeight('bold').setBackground('#E8F0FE')
-    .setHorizontalAlignment('center');
-  
-  sheet.getRange('A24:F30').merge().setValue(
-    '1. Review the QB tab to see all quarterback rankings\n' +
-    '2. Players are automatically sorted by Final Score (highest to lowest)\n' +
-    '3. Colors help you quickly identify elite (green), solid (yellow), and risky (red) options\n' +
-    '4. Use the situational factors (OL Rank, WR Corps, etc.) for deeper analysis\n' +
-    '5. Update player data throughout the season by modifying the QB sheet\n' +
-    '6. RB, WR, TE tabs will be added next - click the buttons below to expand'
-  ).setWrap(true).setVerticalAlignment('top');
-  
-  // Action Buttons
-  sheet.getRange('A32').setValue('🔄 Refresh All Data').setBackground('#4285F4').setFontColor('white')
-    .setFontWeight('bold').setHorizontalAlignment('center');
-  sheet.getRange('B32').setValue('📊 Update QB Rankings').setBackground('#34A853').setFontColor('white')
-    .setFontWeight('bold').setHorizontalAlignment('center');
-  sheet.getRange('C32').setValue('📈 Add RB Data').setBackground('#FBBC04').setFontColor('white')
-    .setFontWeight('bold').setHorizontalAlignment('center');
-  
-  // Column widths
-  sheet.setColumnWidths(1, 6, 150);
-  sheet.getRange('A1:F50').setBorder(true, true, true, true, true, true, '#E0E0E0', SpreadsheetApp.BorderStyle.SOLID);
-}
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('qb')">QB</button>
+        <button class="tab" onclick="showTab('rb')">RB</button>
+        <button class="tab" onclick="showTab('wr')">WR</button>
+        <button class="tab" onclick="showTab('te')">TE</button>
+        <button class="tab" onclick="showTab('k')">K</button>
+        <button class="tab" onclick="showTab('dst')">DST</button>
+    </div>
 
-function createQBSheet(ss) {
-  const sheet = ss.insertSheet('QB');
-  
-  // QB Data
-  const qbData = [
-    ['Josh Allen', 'BUF', 29, 10, 'Healthy', 10, 445, 10, 26.2, 10, 377, 10, 22.2, 10, 8, 10, 7],
-    ['Lamar Jackson', 'BAL', 28, 10, 'Healthy', 10, 421, 10, 24.8, 10, 376, 10, 22.1, 10, 7, 10, 8],
-    ['Jalen Hurts', 'PHI', 26, 10, 'Healthy', 9, 389, 9, 22.9, 9, 359, 9, 21.1, 9, 10, 9, 10],
-    ['Jayden Daniels', 'WAS', 25, 9, 'Healthy', 9, 378, 9, 22.2, 8, 355, 9, 20.9, 9, 7, 8, 8],
-    ['Joe Burrow', 'CIN', 28, 10, 'Healthy', 8, 367, 8, 21.6, 8, 341, 8, 20.1, 8, 6, 9, 9],
-    ['Patrick Mahomes II', 'KC', 29, 10, 'Healthy', 9, 334, 7, 19.6, 7, 329, 7, 19.4, 7, 6, 8, 7],
-    ['Baker Mayfield', 'TB', 29, 10, 'Healthy', 9, 356, 8, 21.0, 8, 322, 7, 18.9, 7, 8, 9, 9],
-    ['Kyler Murray', 'ARI', 27, 10, 'Healthy', 7, 298, 6, 17.5, 6, 317, 7, 18.7, 7, 5, 6, 6],
-    ['Brock Purdy', 'SF', 25, 9, 'Healthy', 8, 287, 6, 16.9, 6, 311, 7, 18.3, 7, 7, 9, 7],
-    ['Bo Nix', 'DEN', 25, 9, 'Healthy', 9, 289, 6, 17.0, 6, 309, 7, 18.2, 7, 9, 7, 6],
-    ['Justin Fields', 'NYJ', 26, 10, 'Healthy', 8, 276, 6, 16.2, 5, 301, 6, 17.7, 6, 5, 5, 5],
-    ['J.J. McCarthy', 'MIN', 22, 5, 'Healthy', 8, 0, 1, 0, 1, 292, 6, 17.2, 6, 6, 6, 8],
-    ['Dak Prescott', 'DAL', 31, 8, 'Healthy', 7, 245, 5, 14.4, 4, 292, 6, 17.2, 6, 6, 6, 7],
-    ['Justin Herbert', 'LAC', 26, 10, 'Healthy', 8, 267, 5, 15.7, 5, 291, 6, 17.1, 6, 5, 7, 6],
-    ['Jared Goff', 'DET', 30, 9, 'Healthy', 9, 312, 7, 18.4, 7, 288, 6, 17.0, 6, 8, 9, 10],
-    ['Caleb Williams', 'CHI', 23, 6, 'Healthy', 9, 234, 4, 13.8, 4, 287, 6, 16.9, 6, 8, 6, 7],
-    ['C.J. Stroud', 'HOU', 23, 6, 'Healthy', 9, 267, 5, 15.7, 5, 280, 5, 16.5, 5, 3, 5, 7],
-    ['Jordan Love', 'GB', 26, 10, 'Thumb Injury', 7, 289, 6, 17.0, 6, 278, 5, 16.4, 5, 7, 7, 6],
-    ['Drake Maye', 'NE', 22, 5, 'Healthy', 8, 187, 3, 11.0, 3, 276, 5, 16.2, 5, 2, 4, 3],
-    ['Trevor Lawrence', 'JAC', 26, 10, 'Healthy', 7, 234, 4, 13.8, 4, 275, 5, 16.2, 5, 2, 5, 6]
-  ];
-  
-  // Headers
-  const headers = [
-    'Player', 'Team', 'Age', 'Age Score', 'Injury Status', 'Health Score',
-    '2024 Total Points', '2024 Points Score', '2024 PPG', '2024 PPG Score',
-    '2025 Proj Points', '2025 Proj Score', '2025 Proj PPG', '2025 PPG Score',
-    'OL Rank', 'Off Proj Rank', 'WR Corps Rank', 'Final Score'
-  ];
-  
-  // Set up header row
-  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-  sheet.getRange(1, 1, 1, headers.length)
-    .setBackground('#1a73e8')
-    .setFontColor('white')
-    .setFontWeight('bold')
-    .setFontFamily('Inter')
-    .setFontSize(11)
-    .setHorizontalAlignment('center')
-    .setVerticalAlignment('middle');
-  
-  // Calculate final scores and add to data
-  const processedData = qbData.map(row => {
-    const scores = [row[3], row[5], row[7], row[9], row[11], row[13], row[14], row[15], row[16]]; // All score columns
-    const finalScore = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length * 10) / 10;
-    return [...row, finalScore];
-  });
-  
-  // Sort by final score (descending)
-  processedData.sort((a, b) => b[17] - a[17]);
-  
-  // Add data
-  sheet.getRange(2, 1, processedData.length, headers.length).setValues(processedData);
-  
-  // Apply formatting
-  const dataRange = sheet.getRange(1, 1, processedData.length + 1, headers.length);
-  dataRange.setFontFamily('Inter').setFontSize(10);
-  
-  // Freeze header row
-  sheet.setFrozenRows(1);
-  
-  // Set row heights
-  sheet.setRowHeight(1, 40);
-  for (let i = 2; i <= processedData.length + 1; i++) {
-    sheet.setRowHeight(i, 30);
-  }
-  
-  // Column widths
-  const columnWidths = [140, 50, 40, 50, 100, 60, 80, 60, 50, 60, 80, 60, 60, 60, 50, 60, 60, 70];
-  columnWidths.forEach((width, index) => {
-    sheet.setColumnWidth(index + 1, width);
-  });
-  
-  // Apply conditional formatting and styling
-  applyQBFormatting(sheet, processedData.length);
-  
-  // Add borders
-  dataRange.setBorder(true, true, true, true, true, true, '#e0e0e0', SpreadsheetApp.BorderStyle.SOLID);
-  
-  // Player name column - bold and left aligned
-  sheet.getRange(2, 1, processedData.length, 1).setFontWeight('bold').setHorizontalAlignment('left');
-  
-  // Team column - bold and colored
-  sheet.getRange(2, 2, processedData.length, 1).setFontWeight('bold').setFontColor('#1565c0');
-  
-  // Final score column - special formatting
-  sheet.getRange(2, 18, processedData.length, 1)
-    .setBackground('#ff6b6b')
-    .setFontColor('white')
-    .setFontWeight('bold')
-    .setFontSize(12)
-    .setHorizontalAlignment('center');
-}
+    <div class="legend">
+        <h3>Scoring Legend</h3>
+        <div class="legend-item"><span class="score-high" style="padding: 2px 6px; border-radius: 4px;">8-10</span> Elite</div>
+        <div class="legend-item"><span class="score-medium" style="padding: 2px 6px; border-radius: 4px;">5-7</span> Above Average</div>
+        <div class="legend-item"><span class="score-low" style="padding: 2px 6px; border-radius: 4px;">1-4</span> Below Average</div>
+        <div class="legend-item">Age Score: 25-30 = Prime (10), Rookie/35+ = Risk (1-3)</div>
+    </div>
 
-function applyQBFormatting(sheet, numRows) {
-  // Score columns to format (Age Score, Health Score, 2024 Points Score, etc.)
-  const scoreColumns = [4, 6, 8, 10, 12, 14, 15, 16, 17]; // Column indices for scores
-  
-  scoreColumns.forEach(colIndex => {
-    const range = sheet.getRange(2, colIndex, numRows);
-    
-    // Create conditional formatting rules
-    const rules = sheet.getConditionalFormatRules();
-    
-    // Elite (8-10) - Green
-    const eliteRule = SpreadsheetApp.newConditionalFormatRule()
-      .setRanges([range])
-      .whenNumberGreaterThanOrEqualTo(8)
-      .setBackground('#34a853')
-      .setFontColor('white')
-      .setBold(true)
-      .build();
-    
-    // Above Average (5-7) - Yellow
-    const avgRule = SpreadsheetApp.newConditionalFormatRule()
-      .setRanges([range])
-      .whenNumberBetween(5, 7)
-      .setBackground('#fbbc04')
-      .setFontColor('white')
-      .setBold(true)
-      .build();
-    
-    // Below Average (1-4) - Red
-    const lowRule = SpreadsheetApp.newConditionalFormatRule()
-      .setRanges([range])
-      .whenNumberLessThan(5)
-      .setBackground('#ea4335')
-      .setFontColor('white')
-      .setBold(true)
-      .build();
-    
-    rules.push(eliteRule, avgRule, lowRule);
-    sheet.setConditionalFormatRules(rules);
-  });
-  
-  // Special formatting for injury status column
-  const injuryRange = sheet.getRange(2, 5, numRows);
-  const injuryValues = injuryRange.getValues();
-  
-  injuryValues.forEach((row, index) => {
-    const cell = sheet.getRange(index + 2, 5);
-    const status = row[0].toString().toLowerCase();
-    
-    if (status === 'healthy') {
-      cell.setBackground('#34a853').setFontColor('white').setFontWeight('bold');
-    } else if (status.includes('questionable') || status.includes('day-to-day')) {
-      cell.setBackground('#fbbc04').setFontColor('white').setFontWeight('bold');
-    } else {
-      cell.setBackground('#ea4335').setFontColor('white').setFontWeight('bold');
-    }
-  });
-  
-  // Center align score columns
-  scoreColumns.forEach(colIndex => {
-    sheet.getRange(2, colIndex, numRows).setHorizontalAlignment('center');
-  });
-}
+    <div id="qb" class="tab-content active">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Team</th>
+                        <th>Age</th>
+                        <th>Age Score</th>
+                        <th>Injury Status</th>
+                        <th>Health Score</th>
+                        <th>2024 Total Points</th>
+                        <th>2024 Points Score</th>
+                        <th>2024 PPG</th>
+                        <th>2024 PPG Score</th>
+                        <th>2025 Proj Points</th>
+                        <th>2025 Proj Score</th>
+                        <th>2025 Proj PPG</th>
+                        <th>2025 PPG Score</th>
+                        <th>OL Rank</th>
+                        <th>Off Proj Rank</th>
+                        <th>WR Corps Rank</th>
+                        <th class="final-score">Final Score</th>
+                    </tr>
+                </thead>
+                <tbody id="qb-data">
+                    <!-- QB data will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-function createPlaceholderSheets(ss) {
-  const positions = ['RB', 'WR', 'TE', 'K', 'DST'];
-  
-  positions.forEach(position => {
-    const sheet = ss.insertSheet(position);
-    
-    // Header
-    sheet.getRange('A1:E1').merge().setValue(`${position} - Coming Soon`)
-      .setFontSize(24).setFontWeight('bold').setHorizontalAlignment('center')
-      .setBackground('#4285F4').setFontColor('white');
-    
-    sheet.setRowHeight(1, 60);
-    
-    // Placeholder content
-    sheet.getRange('A3:E10').merge().setValue(
-      `${position} data will be added next!\n\n` +
-      `This will include:\n` +
-      `• Player rankings and projections\n` +
-      `• Situational analysis\n` +
-      `• Color-coded scoring system\n` +
-      `• Advanced metrics\n\n` +
-      `Stay tuned for updates!`
-    ).setWrap(true).setVerticalAlignment('middle').setHorizontalAlignment('center')
-     .setFontSize(14).setBackground('#f8f9fa');
-    
-    sheet.setColumnWidths(1, 5, 120);
-  });
-}
+    <div id="rb" class="tab-content">
+        <div class="table-container">
+            <h2 style="color: #333; text-align: center;">Running Backs - Coming Soon</h2>
+            <p style="color: #666; text-align: center;">RB data will be added next</p>
+        </div>
+    </div>
 
-// Helper function to refresh QB data (can be called from Control Panel)
-function refreshQBData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const qbSheet = ss.getSheetByName('QB');
-  
-  if (qbSheet) {
-    // Clear existing data (except headers)
-    qbSheet.getRange(2, 1, qbSheet.getLastRow() - 1, qbSheet.getLastColumn()).clear();
-    
-    // Recreate the QB sheet
-    ss.deleteSheet(qbSheet);
-    createQBSheet(ss);
-    
-    SpreadsheetApp.getUi().alert('QB data refreshed successfully!');
-  }
-}
+    <div id="wr" class="tab-content">
+        <div class="table-container">
+            <h2 style="color: #333; text-align: center;">Wide Receivers - Coming Soon</h2>
+            <p style="color: #666; text-align: center;">WR data will be added next</p>
+        </div>
+    </div>
 
-/**
- * HOW TO USE THIS SCRIPT:
- * 
- * 1. Open Google Sheets
- * 2. Go to Extensions > Apps Script
- * 3. Delete any existing code in the editor
- * 4. Paste this entire script
- * 5. Save the project (Ctrl+S)
- * 6. Click "Run" button next to "createFantasyFootballCheatSheet"
- * 7. Grant permissions when prompted
- * 8. Your spreadsheet will be created automatically!
- * 
- * The script creates:
- * - Control Panel with customizable scoring rules
- * - Professionally formatted QB sheet with color coding
- * - Placeholder sheets for other positions
- * - Interactive elements and sorting
- */
+    <div id="te" class="tab-content">
+        <div class="table-container">
+            <h2 style="color: #333; text-align: center;">Tight Ends - Coming Soon</h2>
+            <p style="color: #666; text-align: center;">TE data will be added next</p>
+        </div>
+    </div>
+
+    <div id="k" class="tab-content">
+        <div class="table-container">
+            <h2 style="color: #333; text-align: center;">Kickers - Coming Soon</h2>
+            <p style="color: #666; text-align: center;">K data will be added next</p>
+        </div>
+    </div>
+
+    <div id="dst" class="tab-content">
+        <div class="table-container">
+            <h2 style="color: #333; text-align: center;">Defense/Special Teams - Coming Soon</h2>
+            <p style="color: #666; text-allen: center;">DST data will be added next</p>
+        </div>
+    </div>
+
+    <script>
+        // QB Data with comprehensive scoring system
+        const qbData = [
+            {
+                name: "Josh Allen",
+                team: "BUF",
+                age: 29,
+                ageScore: 10,
+                injury: "Healthy",
+                healthScore: 10,
+                points2024: 445,
+                points2024Score: 10,
+                ppg2024: 26.2,
+                ppg2024Score: 10,
+                projPoints2025: 377,
+                projPointsScore: 10,
+                projPPG2025: 22.2,
+                projPPGScore: 10,
+                olRank: 8,
+                offProjRank: 10,
+                wrCorpsRank: 7
+            },
+            {
+                name: "Lamar Jackson",
+                team: "BAL",
+                age: 28,
+                ageScore: 10,
+                injury: "Healthy",
+                healthScore: 10,
+                points2024: 421,
+                points2024Score: 10,
+                ppg2024: 24.8,
+                ppg2024Score: 10,
+                projPoints2025: 376,
+                projPointsScore: 10,
+                projPPG2025: 22.1,
+                projPPGScore: 10,
+                olRank: 7,
+                offProjRank: 10,
+                wrCorpsRank: 8
+            },
+            {
+                name: "Jalen Hurts",
+                team: "PHI",
+                age: 26,
+                ageScore: 10,
+                injury: "Healthy",
+                healthScore: 9,
+                points2024: 389,
+                points2024Score: 9,
+                ppg2024: 22.9,
+                ppg2024Score: 9,
+                projPoints2025: 359,
+                projPointsScore: 9,
+                projPPG2025: 21.1,
+                projPPGScore: 9,
+                olRank: 10,
+                offProjRank: 9,
+                wrCorpsRank: 10
+            },
+            {
+                name: "Jayden Daniels",
+                team: "WAS",
+                age: 25,
+                ageScore: 9,
+                injury: "Healthy",
+                healthScore: 9,
+                points2024: 378,
+                points2024Score: 9,
+                ppg2024: 22.2,
+                ppg2024Score: 8,
+                projPoints2025: 355,
+                projPointsScore: 9,
+                projPPG2025: 20.9,
+                projPPGScore: 9,
+                olRank: 7,
+                offProjRank: 8,
+                wrCorpsRank: 8
+            },
+            {
+                name: "Joe Burrow",
+                team: "CIN",
+                age: 28,
+                ageScore: 10,
+                injury: "Healthy",
+                healthScore: 8,
+                points2024: 367,
+                points2024Score: 8,
+                ppg2024: 21.6,
+                ppg2024Score: 8,
+                projPoints2025: 341,
+                projPointsScore: 8,
+                projPPG2025: 20.1,
+                projPPGScore: 8,
+                olRank: 6,
+                offProjRank: 9,
+                wrCorpsRank: 9
+            },
+            {
+                name: "Patrick Mahomes II",
+                team: "KC",
+                age: 29,
+                ageScore: 10,
+                injury: "Healthy",
+                healthScore: 9,
+                points2024: 334,
+                points2024Score: 7,
+                ppg2024: 19.6,
+                ppg2024Score: 7,
+                projPoints2025: 329,
+                projPointsScore: 7,
+                projPPG2025: 19.4,
+                projPPGScore: 7,
+                olRank: 6,
+                offProjRank: 8,
+                wrCorpsRank: 7
+            },
+            {
+                name: "Baker Mayfield",
+                team: "TB",
+                age: 29,
+                ageScore: 10,
+                injury: "Healthy",
+                healthScore: 9,
+                points2024: 356,
+                points2024Score: 8,
+                ppg2024: 21.0,
+                ppg2024Score: 8,
+                projPoints2025: 322,
+                projPointsScore: 7,
+                projPPG2025: 18.9,
+                projPPGScore: 7,
+                olRank: 8,
+                offProjRank: 9,
+                wrCorpsRank: 9
+            },
+            {
+                name: "Kyler Murray",
+                team: "ARI",
+                age: 27,
+                ageScore: 10,
+                injury: "Healthy",
+                healthScore: 7,
+                points2024: 298,
+                points2024Score: 6,
+                ppg2024: 17.5,
+                ppg2024Score: 6,
+                projPoints2025: 317,
+                projPointsScore: 7,
+                projPPG2025: 18.7,
+                projPPGScore: 7,
+                olRank: 5,
+                offProjRank: 6,
+                wrCorpsRank: 6
+            },
+            {
+                name: "Brock Purdy",
+                team: "SF",
+                age: 25,
+                ageScore: 9,
+                injury: "Healthy",
+                healthScore: 8,
+                points2024: 287,
+                points2024Score: 6,
+                ppg2024: 16.9,
+                ppg2024Score: 6,
+                projPoints2025: 311,
+                projPointsScore: 7,
+                projPPG2025: 18.3,
+                projPPGScore: 7,
+                olRank: 7,
+                offProjRank: 9,
+                wrCorpsRank: 7
+            },
+            {
+                name: "Bo Nix",
+                team: "DEN",
+                age: 25,
+                ageScore: 9,
+                injury: "Healthy",
+                healthScore: 9,
+                points2024: 289,
+                points2024Score: 6,
+                ppg2024: 17.0,
+                ppg2024Score: 6,
+                projPoints2025: 309,
+                projPointsScore: 7,
+                projPPG2025: 18.2,
+                projPPGScore: 7,
+                olRank: 9,
+                offProjRank: 7,
+                wrCorpsRank: 6
+            },
+            {
+                name: "Justin Fields",
+                team: "NYJ",
+                age: 26,
+                ageScore: 10,
+                injury: "Healthy",
+                healthScore: 8,
+                points2024: 276,
+                points2024Score: 6,
+                ppg2024: 16.2,
+                ppg2024Score: 5,
+                projPoints2025: 301,
+                projPointsScore: 6,
+                projPPG2025: 17.7,
+                projPPGScore: 6,
+                olRank: 5,
+                offProjRank: 5,
+                wrCorpsRank: 5
+            },
+            {
+                name: "J.J. McCarthy",
+                team: "MIN",
+                age: 22,
+                ageScore: 5,
+                injury: "Healthy",
+                healthScore: 8,
+                points2024: 0,
+                points2024Score: 1,
+                ppg2024: 0,
+                ppg2024Score: 1,
+                projPoints2025: 292,
+                projPointsScore: 6,
+                projPPG2025: 17.2,
+                projPPGScore: 6,
+                olRank: 6,
+                offProjRank: 6,
+                wrCorpsRank: 8
+            },
+            {
+                name: "Dak Prescott",
+                team: "DAL",
+                age: 31,
+                ageScore: 8,
+                injury: "Healthy",
+                healthScore: 7,
+                points2024: 245,
+                points2024Score: 5,
+                ppg2024: 14.4,
+                ppg2024Score: 4,
+                projPoints2025: 292,
+                projPointsScore: 6,
+                projPPG2025: 17.2,
+                projPPGScore: 6,
+                olRank: 6,
+                offProjRank: 6,
+                wrCorpsRank: 7
+            },
+            {
+                name: "Justin Herbert",
+                team: "LAC",
+                age: 26,
+                ageScore: 10,
+                injury: "Healthy",
+                healthScore: 8,
+                points2024: 267,
+                points2024Score: 5,
+                ppg2024: 15.7,
+                ppg2024Score: 5,
+                projPoints2025: 291,
+                projPointsScore: 6,
+                projPPG2025: 17.1,
+                projPPGScore: 6,
+                olRank: 5,
+                offProjRank: 7,
+                wrCorpsRank: 6
+            },
+            {
+                name: "Jared Goff",
+                team: "DET",
+                age: 30,
+                ageScore: 9,
+                injury: "Healthy",
+                healthScore: 9,
+                points2024: 312,
+                points2024Score: 7,
+                ppg2024: 18.4,
+                ppg2024Score: 7,
+                projPoints2025: 288,
+                projPointsScore: 6,
+                projPPG2025: 17.0,
+                projPPGScore: 6,
+                olRank: 8,
+                offProjRank: 9,
+                wrCorpsRank: 10
+            },
+            {
+                name: "Caleb Williams",
+                team: "CHI",
+                age: 23,
+                ageScore: 6,
+                injury: "Healthy",
+                healthScore: 9,
+                points2024: 234,
+                points2024Score: 4,
+                ppg2024: 13.8,
+                ppg2024Score: 4,
+                projPoints2025: 287,
+                projPointsScore: 6,
+                projPPG2025: 16.9,
+                projPPGScore: 6,
+                olRank: 8,
+                offProjRank: 6,
+                wrCorpsRank: 7
+            },
+            {
+                name: "C.J. Stroud",
+                team: "HOU",
+                age: 23,
+                ageScore: 6,
+                injury: "Healthy",
+                healthScore: 9,
+                points2024: 267,
+                points2024Score: 5,
+                ppg2024: 15.7,
+                ppg2024Score: 5,
+                projPoints2025: 280,
+                projPointsScore: 5,
+                projPPG2025: 16.5,
+                projPPGScore: 5,
+                olRank: 3,
+                offProjRank: 5,
+                wrCorpsRank: 7
+            },
+            {
+                name: "Jordan Love",
+                team: "GB",
+                age: 26,
+                ageScore: 10,
+                injury: "Thumb Injury",
+                healthScore: 7,
+                points2024: 289,
+                points2024Score: 6,
+                ppg2024: 17.0,
+                ppg2024Score: 6,
+                projPoints2025: 278,
+                projPointsScore: 5,
+                projPPG2025: 16.4,
+                projPPGScore: 5,
+                olRank: 7,
+                offProjRank: 7,
+                wrCorpsRank: 6
+            },
+            {
+                name: "Drake Maye",
+                team: "NE",
+                age: 22,
+                ageScore: 5,
+                injury: "Healthy",
+                healthScore: 8,
+                points2024: 187,
+                points2024Score: 3,
+                ppg2024: 11.0,
+                ppg2024Score: 3,
+                projPoints2025: 276,
+                projPointsScore: 5,
+                projPPG2025: 16.2,
+                projPPGScore: 5,
+                olRank: 2,
+                offProjRank: 4,
+                wrCorpsRank: 3
+            },
+            {
+                name: "Trevor Lawrence",
+                team: "JAC",
+                age: 26,
+                ageScore: 10,
+                injury: "Healthy",
+                healthScore: 7,
+                points2024: 234,
+                points2024Score: 4,
+                ppg2024: 13.8,
+                ppg2024Score: 4,
+                projPoints2025: 275,
+                projPointsScore: 5,
+                projPPG2025: 16.2,
+                projPPGScore: 5,
+                olRank: 2,
+                offProjRank: 5,
+                wrCorpsRank: 6
+            }
+        ];
+
+        function getScoreClass(score) {
+            if (score >= 8) return 'score-high';
+            if (score >= 5) return 'score-medium';
+            return 'score-low';
+        }
+
+        function getInjuryClass(status) {
+            if (status === 'Healthy') return 'healthy';
+            if (status.includes('Questionable') || status.includes('Day-to-Day')) return 'questionable';
+            return 'injured';
+        }
+
+        function calculateFinalScore(player) {
+            const scores = [
+                player.ageScore,
+                player.healthScore,
+                player.points2024Score,
+                player.ppg2024Score,
+                player.projPointsScore,
+                player.projPPGScore,
+                player.olRank,
+                player.offProjRank,
+                player.wrCorpsRank
+            ];
+            return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length * 10) / 10;
+        }
+
+        function populateQBData() {
+            const tbody = document.getElementById('qb-data');
+            
+            // Sort by final score descending
+            const sortedQBs = qbData.map(qb => ({...qb, finalScore: calculateFinalScore(qb)}))
+                                   .sort((a, b) => b.finalScore - a.finalScore);
+            
+            tbody.innerHTML = sortedQBs.map(qb => `
+                <tr>
+                    <td class="player-name">${qb.name}</td>
+                    <td class="team">${qb.team}</td>
+                    <td>${qb.age}</td>
+                    <td class="${getScoreClass(qb.ageScore)}">${qb.ageScore}</td>
+                    <td><span class="injury-status ${getInjuryClass(qb.injury)}">${qb.injury}</span></td>
+                    <td class="${getScoreClass(qb.healthScore)}">${qb.healthScore}</td>
+                    <td>${qb.points2024}</td>
+                    <td class="${getScoreClass(qb.points2024Score)}">${qb.points2024Score}</td>
+                    <td>${qb.ppg2024}</td>
+                    <td class="${getScoreClass(qb.ppg2024Score)}">${qb.ppg2024Score}</td>
+                    <td>${qb.projPoints2025}</td>
+                    <td class="${getScoreClass(qb.projPointsScore)}">${qb.projPointsScore}</td>
+                    <td>${qb.projPPG2025}</td>
+                    <td class="${getScoreClass(qb.projPPGScore)}">${qb.projPPGScore}</td>
+                    <td class="${getScoreClass(qb.olRank)}">${qb.olRank}</td>
+                    <td class="${getScoreClass(qb.offProjRank)}">${qb.offProjRank}</td>
+                    <td class="${getScoreClass(qb.wrCorpsRank)}">${qb.wrCorpsRank}</td>
+                    <td class="final-score">${qb.finalScore}</td>
+                </tr>
+            `).join('');
+        }
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Initialize the QB data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            populateQBData();
+        });
+    </script>
+</body>
+</html>
