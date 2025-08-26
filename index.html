@@ -124,12 +124,12 @@
     </div>
 
     <div class="tabs">
-        <button class="tab active" onclick="loadPosition('qb')">QB</button>
-        <button class="tab" onclick="loadPosition('rb')">RB</button>
-        <button class="tab" onclick="loadPosition('wr')">WR</button>
-        <button class="tab" onclick="loadPosition('te')">TE</button>
-        <button class="tab" onclick="loadPosition('k')">K</button>
-        <button class="tab" onclick="loadPosition('dst')">DST</button>
+        <button class="tab active" onclick="loadPosition('qb', this)">QB</button>
+        <button class="tab" onclick="loadPosition('rb', this)">RB</button>
+        <button class="tab" onclick="loadPosition('wr', this)">WR</button>
+        <button class="tab" onclick="loadPosition('te', this)">TE</button>
+        <button class="tab" onclick="loadPosition('k', this)">K</button>
+        <button class="tab" onclick="loadPosition('dst', this)">DST</button>
     </div>
 
     <div class="legend">
@@ -151,13 +151,24 @@
         // Global variable to track current position
         let currentPosition = null;
 
-        // Load position data
-        function loadPosition(position) {
-            // Update active tab
+        // Load position data - FIXED VERSION
+        function loadPosition(position, clickedTab = null) {
+            // Update active tab - handle both click events and auto-load
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-            event.target.classList.add('active');
+            
+            if (clickedTab) {
+                clickedTab.classList.add('active');
+            } else {
+                // Auto-load case - find the tab by position
+                const tabs = document.querySelectorAll('.tab');
+                tabs.forEach(tab => {
+                    if (tab.textContent.trim() === position.toUpperCase()) {
+                        tab.classList.add('active');
+                    }
+                });
+            }
             
             // Show loading
             document.getElementById('content-area').innerHTML = `
@@ -183,6 +194,7 @@
                     loadPositionData(position);
                 })
                 .catch(error => {
+                    console.log(`${position}.html not found:`, error);
                     document.getElementById('content-area').innerHTML = `
                         <div class="error">
                             <h2>${position.toUpperCase()} - Coming Soon</h2>
@@ -212,7 +224,7 @@
                     }
                 })
                 .catch(error => {
-                    console.log(`No data file found for ${position}, using static content`);
+                    console.log(`No data file found for ${position}:`, error);
                 });
         }
 
@@ -234,9 +246,9 @@
             return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length * 10) / 10;
         }
 
-        // Auto-load QB on page load
+        // Auto-load QB on page load - FIXED VERSION
         document.addEventListener('DOMContentLoaded', function() {
-            loadPosition('qb');
+            loadPosition('qb'); // No event.target issue now
         });
     </script>
 </body>
