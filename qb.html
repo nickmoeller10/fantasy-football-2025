@@ -78,3 +78,21 @@
     .questionable { background-color: #f39c12; color: white; }
     .injured { background-color: #e74c3c; color: white; }
 </style>
+
+<script>
+// Test data - remove this once qb-data.js works
+const testData = [
+    {name: "Josh Allen", team: "BUF", age: 29, ageScore: 10, injury: "Healthy", healthScore: 10, points2024: 445, points2024Score: 10, ppg2024: 26.2, ppg2024Score: 10, projPoints2025: 377, projPointsScore: 10, projPPG2025: 22.2, projPPGScore: 10, olRank: 8, offProjRank: 10, wrCorpsRank: 7}
+];
+
+function testPopulate() {
+    const tbody = document.getElementById('qb-data');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td class="player-name">Josh Allen</td><td class="team">BUF</td><td>29</td><td class="score-high">10</td><td><span class="injury-status healthy">Healthy</span></td><td class="score-high">10</td><td>445</td><td class="score-high">10</td><td>26.2</td><td class="score-high">10</td><td>377</td><td class="score-high">10</td><td>22.2</td><td class="score-high">10</td><td class="score-high">8</td><td class="score-high">10</td><td class="score-high">7</td><td class="final-score">8.9</td></tr>';
+        console.log('Test data populated');
+    }
+}
+
+// Run test after a delay
+setTimeout(testPopulate, 1000);
+</script>
